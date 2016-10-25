@@ -49,15 +49,18 @@ process bowtie {
     file ref_genome from reference
 
     output:
-    file "${input.baseName}.mapped" into mapped
+    file "${input.baseName}.sorted.bam" into mapped
 
     """
     bowtie2-build $ref_genome index
     bowtie2 -p 12 -x index -U $input -S "${input.baseName}.bam"
+    samtools sort -o "${input.baseName}.sorted.bam" "${input.baseName}.bam"
     """
 }
 
 process mpileup {
+    publishDir 'results'
+
     input:
     file input from mapped
     file ref_genome from reference
@@ -66,6 +69,6 @@ process mpileup {
     file "${input.baseName}.vcf" into snp_file
 
     """
-    samtools mpileup
+    samtools mpileup $input -o "${input.baseName}.vcf" -v -u
     """
 }
