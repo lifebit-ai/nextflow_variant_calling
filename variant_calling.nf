@@ -54,7 +54,7 @@ process bowtie {
     """
     bowtie2-build $ref_genome index
     bowtie2 -p 12 -x index -U $input -S "${input.baseName}.bam"
-    samtools sort -o "${input.baseName}.sorted.bam" "${input.baseName}.bam"
+    samtools sort -@ 12 -o "${input.baseName}.sorted.bam" "${input.baseName}.bam"
     """
 }
 
