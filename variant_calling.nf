@@ -4,6 +4,7 @@ params.reads = 'data/SRR957824.fastq'
 params.ref = 'data/pO157_Sakai.fasta'
 params.adapt = 'data/adapters.fasta'
 params.mode = 'illumina'
+params.skip_plot_vcf = false
 
 sequences = file(params.reads)
 reference = file(params.ref)
@@ -70,5 +71,33 @@ process mpileup {
 
     """
     samtools mpileup $input -o "${input.baseName}.vcf" -v -u
+    """
+}
+
+/*
+ * Generate plot from output vcf file
+ */
+process vcf_plot {
+    tag "$vcf"
+    publishDir 'results'
+    container 'lifebitai/vcfr:latest'
+
+    when:
+    !params.skip_plot_vcf
+
+ 		input:
+    file vcf from snp_file
+
+ 		output:
+    file 'Rplots.pdf' into plot
+
+ 		script:
+    """
+    #!/usr/bin/env Rscript
+ 		library(vcfR)
+    vcf_file <- "${vcf}"
+    vcf <- read.vcfR(vcf_file, verbose = FALSE)
+    plot(vcf)
+    dev.off()
     """
 }
